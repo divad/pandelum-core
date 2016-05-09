@@ -21,6 +21,10 @@ import io.pandelum.PandelumCore;
  * player:<uuid>:perms:<world> - list (set) of permissions per world
  * player:<uuid>:groups - list (set) of groups the user is in
  * 
+ * player:<uuid>:<server>:perms
+ * player:<uuid>:<server>:perms:<world>
+ * 
+ * 
  * group:<name>:profile - hash of data about the group
  * group:<name>:perms - perms for the group
  * group:<name>:perms:<world> - perms for the group per world

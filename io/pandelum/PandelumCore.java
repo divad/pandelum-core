@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.CommandMap;
 import org.bukkit.entity.Player;
@@ -54,18 +55,21 @@ public class PandelumCore extends JavaPlugin
 			commandMap = (CommandMap) serverCommandMap.get(Bukkit.getServer());
 			
 			/* Register each command */
-			commandMap.register("sc",   new StaffChatCommand("sc",this));
-			commandMap.register("rp",   new RpCommand("rp",this));
-			commandMap.register("fafk", new FakeAfkCommand("fafk",this));
-			commandMap.register("sync", new SyncCommand("sync",this));
+			commandMap.register("global", new GlobalCommand("global",this));			
+			commandMap.register("sc",     new StaffChatCommand("sc",this));
+			commandMap.register("rp",     new RpCommand("rp",this));
+			commandMap.register("fafk",   new FakeAfkCommand("fafk",this));
+			commandMap.register("sync",   new SyncCommand("sync",this));
 			
-			// ADD: /global command so people can speak in global even when in a chat room
 			// ADD: /op and /deop so they are blocked from players
 			// ADD: fakeop
 			// ADD: block butcher
+			
 			// ADD: switch server command
+			
 			// ADD: /spy
 			// ADD: /me
+
 			// ADD: permissions reload command for a player
 			// ADD: permissions modification commands
 			// ADD: kick/ban/etc. commands
@@ -137,7 +141,53 @@ public class PandelumCore extends JavaPlugin
 	
 	public void chatRoomSendMessage(String room, Player sender, String message)
 	{
-		if (room.equals("sc"))
+		// Reject too many uppercase characters if they are not staff
+		if (!(sender.hasPermission("pandelum.staff")))
+		{
+			/* Prevent caps lock spam */
+			/* TODO: staff can do as much as they like */
+			int upperChars = 0;
+			for (int i = 0; i < message.length(); i++)
+			{
+				if (Character.isUpperCase(message.charAt(i)))
+				{
+					upperChars++;
+				}
+			}
+			
+			if ((upperChars / message.length() * 100) >= 60)
+			{
+				sender.sendMessage("Your message contained too many uppercase characters");
+				return;
+			}
+		}
+		
+		/* Messages starting with a full stop are where the user wishes to start
+		 * the message with a forward slash but cannot (as it would be a command)
+		 * so we remove the full stop to make it look like it did */
+		if (message.startsWith("./"))
+		{
+			message = message.substring(1);
+		}
+		
+		/* We don't want people to colour their own messages */
+		message = ChatColor.stripColor(message);	
+		
+		// Global chat
+		if (room.equals("global"))
+		{
+			/* TODO Donors coin! */
+			/* TODO: handle coloured display name based on rank/PR */
+			/* TODO MAYBE - custom json stuff? */
+			/* TODO: multi-server chat */			
+			
+			/* Send the message in global */
+			for (Player player : Bukkit.getOnlinePlayers())
+	            player.sendMessage(sender.getDisplayName() + ": " + message);
+			getLogger().info("CHAT " + sender.getName() + ": " + message);			
+		}
+		// Staff chat
+		else if (room.equals("sc"))
 		{
 			// send the message to all players online who have the staff chat permission
 			for (Player player : Bukkit.getOnlinePlayers())
@@ -146,6 +196,7 @@ public class PandelumCore extends JavaPlugin
 					player.sendMessage("[sc] " + sender.getDisplayName() + ": " + message);
 			}
 		}
+		// Another chat room
 		else
 		{
 		
@@ -169,9 +220,11 @@ public class PandelumCore extends JavaPlugin
 			        }
 			    }
 			}
+
+			// Log the chat room message
+		    getLogger().info("CHAT [" + room + "] " + sender.getName() + ": " + message);		
+			
 		}
-		
-	    getLogger().info("CHAT [" + room + "] " + sender.getName() + ": " + message);
 		
 	}
 	
@@ -289,7 +342,7 @@ public class PandelumCore extends JavaPlugin
 		// TODO score permissions
 		// TODO add 'global/default' permissions
 		
-		this.permissions.put(player_uuid, playerPermissions);		
+		this.permissions.put(player_uuid, playerPermissions);
 	}
 	
 	public void saveAllWorlds()
