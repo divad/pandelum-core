@@ -21,7 +21,7 @@ import io.pandelum.commands.*;
 public class PandelumCore extends JavaPlugin
 {
 	/* The version of this plugin */
-	public final String version = "17";
+	public final String version = "18";
 	
 	/* The connection to the redis server */
 	private Jedis redis = new Jedis("localhost");
@@ -54,11 +54,12 @@ public class PandelumCore extends JavaPlugin
 			commandMap = (CommandMap) serverCommandMap.get(Bukkit.getServer());
 			
 			/* Register each command */
-			commandMap.register("sc",    new StaffChatCommand("sc",this));
+			commandMap.register("sc",   new StaffChatCommand("sc",this));
 			commandMap.register("rp",   new RpCommand("rp",this));
 			commandMap.register("fafk", new FakeAfkCommand("fafk",this));
+			commandMap.register("sync", new SyncCommand("sync",this));
+			
 			// ADD: /global command so people can speak in global even when in a chat room
-			// ADD: /worldsave command to save all worlds
 			// ADD: /op and /deop so they are blocked from players
 			// ADD: fakeop
 			// ADD: block butcher
@@ -99,6 +100,10 @@ public class PandelumCore extends JavaPlugin
 				}
 			}
 		}
+		
+		/* Schedule a task to run every 5 minutes to save all loaded worlds */
+		SaveWorldsRunnable saver = new SaveWorldsRunnable(this);
+		saver.runTaskTimer(this, 6000, 6000);
 		
 		/* Log that initialisation is complete */
 		getLogger().info("Pandelum Core v" + version + " started up");
@@ -285,6 +290,15 @@ public class PandelumCore extends JavaPlugin
 		// TODO add 'global/default' permissions
 		
 		this.permissions.put(player_uuid, playerPermissions);		
+	}
+	
+	public void saveAllWorlds()
+	{
+        for (World world : Bukkit.getWorlds())
+        {
+            world.save();
+            getLogger().info("Saved world " + world.getName());
+        }
 	}
 	
 
