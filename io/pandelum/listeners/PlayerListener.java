@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -158,5 +159,13 @@ public class PlayerListener implements Listener
 		
 		// Remove the permissions for this player 'cos they're going offline
 		core.deletePlayerPermissions(player);
+	}
+	
+	// When a player changes world we must rebuild their permissions 
+	// to reflect the permissions they should have in the new world
+	@EventHandler
+	public void onPlayerSwitchWorld(PlayerChangedWorldEvent event)
+	{
+		core.rebuildPlayerPermissions(event.getPlayer(), event.getPlayer().getWorld());
 	}
 }
