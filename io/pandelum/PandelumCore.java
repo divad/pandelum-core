@@ -56,12 +56,13 @@ public class PandelumCore extends JavaPlugin
 			commandMap = (CommandMap) serverCommandMap.get(Bukkit.getServer());
 			
 			/* Register each command */
-			commandMap.register("global",  new GlobalCommand("global",this));			
-			commandMap.register("sc",      new StaffChatCommand("sc",this));
-			commandMap.register("rp",      new RpCommand("rp",this));
-			commandMap.register("rplist",  new RpListCommand("rplist",this));
-			commandMap.register("fafk",    new FakeAfkCommand("fafk",this));
-			commandMap.register("sync",    new SyncCommand("sync",this));
+			commandMap.register("global",    new GlobalCommand("global",this));			
+			commandMap.register("sc",        new StaffChatCommand("sc",this));
+			commandMap.register("rp",        new RpCommand("rp",this));
+			commandMap.register("rplist",    new RpListCommand("rplist",this));
+			commandMap.register("fafk",      new FakeAfkCommand("fafk",this));
+			commandMap.register("sync",      new SyncCommand("sync",this));
+			commandMap.register("firstname", new FirstnameCommand("firstname",this));
 
 		}
 		catch (IllegalAccessException exception)
@@ -167,12 +168,24 @@ public class PandelumCore extends JavaPlugin
 			/* TODO Donors coin! */
 			/* TODO: handle coloured display name based on rank/PR */
 			/* TODO MAYBE - custom json stuff? */
-			/* TODO: multi-server chat */			
+			/* TODO: multi-server chat */
+			
+			String name = sender.getDisplayName();
+			
+			if (sender.hasPermission("pandelum.staff"))
+			{
+				String firstName = this.playerProfileGet(sender.getUniqueId(), "firstname");
+				if (firstName != null)
+				{
+					name = name + " (" + firstName + ")";
+				}
+			}
 			
 			/* Send the message in global */
 			for (Player player : Bukkit.getOnlinePlayers())
-	            player.sendMessage(sender.getDisplayName() + ": " + message);
-			getLogger().info("CHAT " + sender.getName() + ": " + message);			
+	            player.sendMessage(name + ": " + message);
+			
+			getLogger().info("CHAT " + sender.getName() + ": " + message);
 		}
 		// Staff chat
 		else if (room.equals("sc"))
