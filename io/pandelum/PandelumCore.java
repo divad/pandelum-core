@@ -35,7 +35,6 @@ public class PandelumCore extends JavaPlugin
 	/* note that chat* functions dont enforce the argument exists within this list */
 	String[] chatrooms = {"rp", "sc"};
 	
-	
 	@Override
 	public void onEnable()
 	{
@@ -46,6 +45,7 @@ public class PandelumCore extends JavaPlugin
 		PluginManager pluginManager = getServer().getPluginManager();
 		pluginManager.registerEvents(new ChatListener(this),this);
 		pluginManager.registerEvents(new PlayerListener(redis,getLogger(),this), this);
+		pluginManager.registerEvents(new CommandListener(this), this);
 
 		/* Load commands */
 		CommandMap commandMap;
@@ -56,12 +56,13 @@ public class PandelumCore extends JavaPlugin
 			commandMap = (CommandMap) serverCommandMap.get(Bukkit.getServer());
 			
 			/* Register each command */
-			commandMap.register("global", new GlobalCommand("global",this));			
-			commandMap.register("sc",     new StaffChatCommand("sc",this));
-			commandMap.register("rp",     new RpCommand("rp",this));
-			commandMap.register("rplist", new RpListCommand("rplist",this));
-			commandMap.register("fafk",   new FakeAfkCommand("fafk",this));
-			commandMap.register("sync",   new SyncCommand("sync",this));
+			commandMap.register("global",  new GlobalCommand("global",this));			
+			commandMap.register("sc",      new StaffChatCommand("sc",this));
+			commandMap.register("rp",      new RpCommand("rp",this));
+			commandMap.register("rplist",  new RpListCommand("rplist",this));
+			commandMap.register("fafk",    new FakeAfkCommand("fafk",this));
+			commandMap.register("sync",    new SyncCommand("sync",this));
+
 		}
 		catch (IllegalAccessException exception)
 		{
