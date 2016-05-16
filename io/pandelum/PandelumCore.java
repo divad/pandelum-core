@@ -1,6 +1,7 @@
 package io.pandelum;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -22,7 +23,7 @@ import io.pandelum.commands.*;
 public class PandelumCore extends JavaPlugin
 {
 	/* The version of this plugin */
-	public final String version = "18";
+	public final String version = "20";
 	
 	/* The connection to the redis server */
 	private Jedis redis = new Jedis("localhost");
@@ -58,22 +59,9 @@ public class PandelumCore extends JavaPlugin
 			commandMap.register("global", new GlobalCommand("global",this));			
 			commandMap.register("sc",     new StaffChatCommand("sc",this));
 			commandMap.register("rp",     new RpCommand("rp",this));
+			commandMap.register("rplist", new RpListCommand("rplist",this));
 			commandMap.register("fafk",   new FakeAfkCommand("fafk",this));
 			commandMap.register("sync",   new SyncCommand("sync",this));
-			
-			// ADD: /op and /deop so they are blocked from players
-			// ADD: fakeop
-			// ADD: block butcher
-			
-			// ADD: switch server command
-			
-			// ADD: /spy
-			// ADD: /me
-
-			// ADD: permissions reload command for a player
-			// ADD: permissions modification commands
-			// ADD: kick/ban/etc. commands
-			
 		}
 		catch (IllegalAccessException exception)
 		{
@@ -145,7 +133,6 @@ public class PandelumCore extends JavaPlugin
 		if (!(sender.hasPermission("pandelum.staff")))
 		{
 			/* Prevent caps lock spam */
-			/* TODO: staff can do as much as they like */
 			int upperChars = 0;
 			for (int i = 0; i < message.length(); i++)
 			{
@@ -228,6 +215,29 @@ public class PandelumCore extends JavaPlugin
 		
 	}
 	
+	public ArrayList<String> chatRoomGetPlayers(String room)
+	{
+		ArrayList<String> usernameList = new ArrayList<String>();
+		
+		Set<String> members = redis.smembers("chat:room:" + room);
+
+		if (members != null)
+		{
+			Iterator<String> it = members.iterator();
+		    while(it.hasNext())
+		    {
+		        String playerUUID = it.next();
+		        Player player = Bukkit.getPlayer(UUID.fromString(playerUUID));
+		        if (player != null)
+		        {
+		        	usernameList.add(player.getName());
+		        }
+		    }
+		}
+		
+		return usernameList;
+	}
+	
 	public void chatRoomAddPlayer(String room, UUID player_uuid)
 	{
 		// You can't add people to staff chat - members are based on perms
@@ -276,8 +286,7 @@ public class PandelumCore extends JavaPlugin
 			this.chatRoomRemovePlayer(room, player_uuid);
 			this.playerProfileSet(player_uuid, "chatroom", "global");
 			player.sendMessage("You are no longer chatting in " + room);
-		}		
-		
+		}
 	}	
 	
 	public boolean playerProfileContainsKey(UUID player_uuid, String key)
@@ -291,7 +300,7 @@ public class PandelumCore extends JavaPlugin
 				return true;
 			}
 		}		
-		
+
 		return false;
 	}		
 	
@@ -339,7 +348,7 @@ public class PandelumCore extends JavaPlugin
 		}
 		
 		// TODO group permissions
-		// TODO score permissions
+		// TODO score permissions [actually no, score calculated and puts you into groups]
 		// TODO add 'global/default' permissions
 		
 		this.permissions.put(player_uuid, playerPermissions);
@@ -353,6 +362,4 @@ public class PandelumCore extends JavaPlugin
             getLogger().info("Saved world " + world.getName());
         }
 	}
-	
-
 }
